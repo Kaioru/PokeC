@@ -20,6 +20,8 @@ namespace PokeC
         public AccountService DefaultAccountService { get; set; }
         public Pokemon.PokemonService DefaultPokemonService { get; set; }
 
+        public Account[] DefaultAccounts = new Account[10];
+
         public Login()
         {
             InitializeComponent();
@@ -38,6 +40,17 @@ namespace PokeC
             {
                 DefaultAccountService = new AccountService();
             }
+
+            DefaultAccounts[0] = new Account("admin", BCryptHelper.HashPassword("admin", BCryptHelper.GenerateSalt()));
+
+            foreach (Account a in DefaultAccounts)
+            {
+                if (a != null) 
+                {
+                    DefaultAccountService.createAccount(a.Username, a);
+                }
+            }
+
         }
 
         private void btnLogin_Click(object sender, EventArgs e)
@@ -55,7 +68,7 @@ namespace PokeC
                 if (reply == AccountService.LoginReply.OK)
                 {
                     Account account = DefaultAccountService.getAccount(username);
-                    Dex dex = new Dex(account);
+                    Dex dex = new Dex(account, DefaultPokemonService);
 
                     dex.Show();
                     this.Hide();

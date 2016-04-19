@@ -13,13 +13,15 @@ namespace PokeC.Pokemon
         public String Name { get; set; }
         public String Type1 { get; set; }
         public String Type2 { get; set; }
+        public String Ability1 { get; set; }
+        public String Ability2 { get; set; }
 
         public Pokemon(JObject o)
         {
-            Id = Convert.ToInt32(o["id"]);
+            Id = (int) o["id"];
             Name = (string) o["name"];
-            Console.WriteLine(Id);
             JArray types = (JArray) o["types"];
+            //Console.WriteLine(types);
 
             int i = 1;
             foreach (var item in types.Children())
@@ -31,6 +33,30 @@ namespace PokeC.Pokemon
                         break;
                     case 2:
                         Type2 = (string) item["type"]["name"];
+                        break;
+                }
+
+                i++;
+
+                if (i > 2)
+                {
+                    break;
+                }
+            }
+
+            JArray abilities = (JArray)o["abilities"];
+            //Console.WriteLine(types);
+
+            i = 1;
+            foreach (var item in abilities.Children())
+            {
+                switch (i)
+                {
+                    case 1:
+                        Ability1 = (string)item["ability"]["name"];
+                        break;
+                    case 2:
+                        Ability2 = (string)item["ability"]["name"];
                         break;
                 }
 

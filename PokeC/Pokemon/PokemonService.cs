@@ -15,24 +15,59 @@ namespace PokeC.Pokemon
 
         public PokemonService()
         {
-            using (WebClient wc = new WebClient())
-            {
-                var json = wc.DownloadString("http://pokeapi.co/api/v2/pokemon/?limit=999");
-                JObject o = JObject.Parse(json);
+            new Thread(() =>
+                   {
+                       using (WebClient wc = new WebClient())
+                       {
+                           var json = wc.DownloadString("http://pokeapi.co/api/v2/pokemon/?limit=60");
+                           JObject o = JObject.Parse(json);
 
-                JArray array = (JArray) o["results"];
-                foreach (var item in array.Children())
+                           JArray array = (JArray)o["results"];
+                           foreach (var item in array.Children())
+                           {
+                               string url = (string)item["url"];
+
+                               new Thread(() =>
+                               {
+                                   using (WebClient wcin = new WebClient())
+                                   {
+                                       Console.WriteLine("Started parsing " + url);
+                                       try
+                                       {
+                                           var pkmn = wcin.DownloadString(url);
+                                           JObject poke = JObject.Parse(pkmn);
+                                           Pokemon obj = new Pokemon(poke);
+
+                                           pokemons.Add(obj.Id, obj);
+                                           Console.WriteLine("Finished parsing " + url);
+                                       }
+                                       catch (WebException e) {
+                                           Console.WriteLine("Failed parsing " + url);
+                                       }
+                                   }
+                               }).Start();
+                           }
+                       }
+                   }
+           ).Start();
+        }
+
+        public Pokemon[] getSearchResults(string query) 
+        { 
+            Pokemon[] results = new Pokemon[151];
+
+            int i = 0;
+            foreach (KeyValuePair<int, Pokemon> entry in pokemons) 
+            {
+                Pokemon p = entry.Value;
+
+                if (p.Name.ToLower().Contains(query.ToLower()))
                 {
-                    new Thread(() =>
-                    {
-                        using (WebClient wc2 = new WebClient())
-                        {
-                            string pkmn = wc2.DownloadString((string)item["url"]);
-                            Console.WriteLine("1");
-                        }
-                    }).Start();
+                    results[i++] = p;
                 }
             }
+
+            return results;
         }
     }
 }
